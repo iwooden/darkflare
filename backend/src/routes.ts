@@ -1,4 +1,5 @@
 import { CharacterController } from "./controller/CharacterController"
+import { PartyController } from "./controller/PartyController"
 import { SpanController } from "./controller/SpanController"
 
 export const Routes = [
@@ -35,6 +36,24 @@ export const Routes = [
         method: "post",
         route: "/chars/remove",
         controller: CharacterController,
+        action: "remove"
+    },
+
+    // party routes
+    {
+        method: "get",
+        route: "/parties",
+        controller: PartyController,
+        action: "query"
+    }, {
+        method: "post",
+        route: "/parties",
+        controller: PartyController,
+        action: "create"
+    }, {
+        method: "post",
+        route: "/parties/remove",
+        controller: PartyController,
         action: "remove"
     },
 ]

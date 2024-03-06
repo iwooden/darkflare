@@ -1,6 +1,7 @@
 import { AppDataSource } from "../data-source"
 import { Request } from "express"
 import { Character } from "../entity/Character"
+import { Party } from "../entity/Party"
 
 interface CharQuery {
     id: number | undefined,
@@ -8,6 +9,7 @@ interface CharQuery {
 }
 
 interface CharCreate {
+    partyId: number,
     name: string,
 }
 
@@ -18,6 +20,7 @@ interface CharDelete {
 export class CharacterController {
 
     private charRepository = AppDataSource.getRepository(Character)
+    private partyRepository = AppDataSource.getRepository(Party)
 
     async query(req: Request<unknown, unknown, unknown, CharQuery>) {
         const q = req.query
@@ -26,8 +29,15 @@ export class CharacterController {
 
     async create(req: Request<unknown, unknown, CharCreate, unknown>) {
         const q = req.body
+        const party = await this.partyRepository.findOneBy({ id: q.partyId })
 
-        const char = Object.assign(new Character(), q)
+        if (!party) {
+            return `no party found for id ${q.partyId}`
+        }
+
+        const char = Object.assign(new Character(), q, {
+            party: party
+        })
 
         return this.charRepository.save(char);
     }

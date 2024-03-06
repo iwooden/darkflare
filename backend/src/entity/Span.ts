@@ -25,10 +25,10 @@ export class Span {
     })
     character: Character
 
-    @Column({ type: 'timestamptz' })
+    @Column({ type: 'timestamp' })
     fromTime: string
 
-    @Column({ type: 'timestamptz' })
+    @Column({ type: 'timestamp' })
     toTime: string
 
     @Column()
