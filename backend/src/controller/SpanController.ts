@@ -3,6 +3,8 @@ import { Request } from "express"
 import { Character } from "../entity/Character"
 import { Span, SpanType } from "../entity/Span"
 import { Between, LessThan, MoreThan } from "typeorm"
+import { DateTime, Duration, Interval } from "luxon"
+import * as parse from "postgres-interval"
 
 interface SpanQuery {
     id: number | undefined,
@@ -75,6 +77,16 @@ export class SpanController {
             return `no char found for id ${q.characterId}`
         }
 
+        // Get last span to update char age
+        const lastSpan = await this.spanRepository.findOne({
+            where: {
+                characterId: q.characterId
+            },
+            order: {
+                order: 'DESC'
+            }
+        })
+
         const span = Object.assign(new Span(), q, {
             character: char,
             order: char.nextSpanOrder
@@ -82,11 +94,28 @@ export class SpanController {
 
         const spanSaved = await this.spanRepository.save(span)
 
-        // Increment span order number for char
+        // Calculate age increment for char
+        let age = Duration.fromISO(char.age.toISO())
+
+        if (lastSpan) {
+            const start = DateTime.fromJSDate(lastSpan.toTime, { zone: 'UTC' })
+            const end = DateTime.fromISO(spanSaved.fromTime)
+
+            const addedAge = Interval.fromDateTimes(start, end).toDuration()
+
+            age = age.plus(addedAge).normalize()
+        }
+
+        // Convert to postgres-interval
+        // Hacky but postgres-interval can't be constructed from ISO 8601 strings
+        const pgInterval = Object.assign(parse(""), age.toObject())
+
+        // Update span order number & age for char
         await this.charRepository.update({
-            id: q.characterId
+            id: q.characterId,
         }, {
-            nextSpanOrder: char.nextSpanOrder + 1
+            nextSpanOrder: char.nextSpanOrder + 1,
+            age: pgInterval
         })
 
         return spanSaved;

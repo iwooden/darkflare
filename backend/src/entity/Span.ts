@@ -26,10 +26,10 @@ export class Span {
     character: Character
 
     @Column({ type: 'timestamp' })
-    fromTime: string
+    fromTime: Date
 
     @Column({ type: 'timestamp' })
-    toTime: string
+    toTime: Date
 
     @Column()
     timezone: string
