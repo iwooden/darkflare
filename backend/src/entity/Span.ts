@@ -1,5 +1,6 @@
 import { Unique, Entity, PrimaryGeneratedColumn, JoinColumn, Column, ManyToOne } from "typeorm"
 import { Character } from "./Character"
+import { IPostgresInterval } from "postgres-interval"
 
 export enum SpanType {
     SpanTime = 'spanTime',
@@ -30,6 +31,9 @@ export class Span {
 
     @Column({ type: 'timestamp' })
     toTime: Date
+
+    @Column({ type: 'interval' })
+    charAge: IPostgresInterval
 
     @Column()
     timezone: string

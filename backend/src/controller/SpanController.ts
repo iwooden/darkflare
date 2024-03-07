@@ -87,19 +87,13 @@ export class SpanController {
             }
         })
 
-        const span = Object.assign(new Span(), q, {
-            character: char,
-            order: char.nextSpanOrder
-        })
-
-        const spanSaved = await this.spanRepository.save(span)
 
         // Calculate age increment for char
         let age = Duration.fromISO(char.age.toISO())
 
         if (lastSpan) {
             const start = DateTime.fromJSDate(lastSpan.toTime, { zone: 'UTC' })
-            const end = DateTime.fromISO(spanSaved.fromTime)
+            const end = DateTime.fromISO(q.fromTime)
 
             const addedAge = Interval.fromDateTimes(start, end).toDuration()
 
@@ -118,7 +112,12 @@ export class SpanController {
             age: pgInterval
         })
 
-        return spanSaved;
+        const span = Object.assign(new Span(), q, {
+            character: char,
+            order: char.nextSpanOrder,
+            charAge: pgInterval
+        })
+        return await this.spanRepository.save(span)
     }
 
     async remove(req: Request<unknown, unknown, SpanDelete, unknown>) {
