@@ -1,5 +1,5 @@
 import { OneToMany, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
-import { Span } from "./Span"
+import { Event } from "./Event"
 import { Party } from "./Party"
 import { IPostgresInterval } from "postgres-interval"
 
@@ -28,8 +28,8 @@ export class Character {
     })
     party: Party
 
-    @OneToMany(() => Span, (span) => span.character, {
+    @OneToMany(() => Event, (span) => span.character, {
         cascade: true
     })
-    spans: Span[]
+    events: Event[]
 }

@@ -1,7 +1,7 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
 import { Character } from "./entity/Character"
-import { Span } from "./entity/Span"
+import { Event } from "./entity/Event"
 import { Party } from "./entity/Party"
 
 export const AppDataSource = new DataSource({
@@ -14,7 +14,7 @@ export const AppDataSource = new DataSource({
     useUTC: true,
     synchronize: true,
     logging: false,
-    entities: [Party, Character, Span],
+    entities: [Party, Character, Event],
     migrations: [],
     subscribers: [],
 })

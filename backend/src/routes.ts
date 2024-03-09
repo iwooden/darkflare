@@ -1,23 +1,23 @@
 import { CharacterController } from "./controller/CharacterController"
 import { PartyController } from "./controller/PartyController"
-import { SpanController } from "./controller/SpanController"
+import { EventController } from "./controller/EventController"
 
 export const Routes = [
     // span routes
     {
         method: "get",
         route: "/spans",
-        controller: SpanController,
+        controller: EventController,
         action: "query"
     }, {
         method: "post",
         route: "/spans",
-        controller: SpanController,
+        controller: EventController,
         action: "create"
     }, {
         method: "post",
         route: "/spans/remove",
-        controller: SpanController,
+        controller: EventController,
         action: "remove"
     },
 
@@ -37,6 +37,11 @@ export const Routes = [
         route: "/chars/remove",
         controller: CharacterController,
         action: "remove"
+    }, {
+        method: "patch",
+        route: "/chars",
+        controller: CharacterController,
+        action: "update"
     },
 
     // party routes

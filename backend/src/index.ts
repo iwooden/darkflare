@@ -3,8 +3,6 @@ import * as bodyParser from "body-parser"
 import { Request, Response } from "express"
 import { AppDataSource } from "./data-source"
 import { Routes } from "./routes"
-import { Character } from "./entity/Character"
-import { Span, SpanType } from "./entity/Span"
 
 AppDataSource.initialize().then(async () => {
 

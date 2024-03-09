@@ -2,38 +2,48 @@ import { Unique, Entity, PrimaryGeneratedColumn, JoinColumn, Column, ManyToOne }
 import { Character } from "./Character"
 import { IPostgresInterval } from "postgres-interval"
 
-export enum SpanType {
+export enum EventType {
     SpanTime = 'spanTime',
-    SpanLevel = 'spanLevel',
+    SpanTele = 'spanTele',
     Birth = 'birth',
-    LocationChange = 'locationOnly',
-    Rest = 'rest',
-    Notes = 'notes',
-    Death = 'death'
+    Death = 'death',
+    LocationChange = 'locationChange',
+    RestStart = 'restStart',
+    RestEnd = 'restEnd',
+    Other = 'other',
 }
 
 @Entity()
 @Unique(["character", "order"])
-export class Span {
+export class Event {
     @PrimaryGeneratedColumn()
     id: number
 
     @Column()
     characterId: number
 
-    @ManyToOne(() => Character, (character) => character.spans, {
+    @ManyToOne(() => Character, (character) => character.events, {
         onDelete: "CASCADE"
     })
     character: Character
 
     @Column({ type: 'timestamp' })
-    fromTime: Date
+    time: Date
 
-    @Column({ type: 'timestamp' })
+    @Column({
+        type: 'timestamp',
+        nullable: true
+    })
     toTime: Date
 
     @Column({ type: 'interval' })
     charAge: IPostgresInterval
+
+    @Column({ type: 'interval' })
+    charRemainingSpan: IPostgresInterval
+
+    @Column()
+    charSpanLevel: number
 
     @Column()
     timezone: string
@@ -49,8 +59,7 @@ export class Span {
 
     @Column({
         type: 'enum',
-        enum: SpanType,
-        default: SpanType.SpanTime
+        enum: EventType,
     })
     type: string
 }

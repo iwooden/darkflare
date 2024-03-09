@@ -1,12 +1,13 @@
 import { AppDataSource } from "../data-source"
 import { Request } from "express"
 import { Character } from "../entity/Character"
-import { Span, SpanType } from "../entity/Span"
+import { Event, EventType } from "../entity/Event"
 import { Between, LessThan, MoreThan } from "typeorm"
 import { DateTime, Duration, Interval } from "luxon"
 import * as parse from "postgres-interval"
+import { SpanLevelTable } from "../util/spanLevelTable"
 
-interface SpanQuery {
+interface EventQuery {
     id: number | undefined,
     charId: number | undefined,
     order: number | undefined,
@@ -16,27 +17,27 @@ interface SpanQuery {
     orderEnd: number | undefined
 }
 
-interface SpanCreate {
+interface EventCreate {
     characterId: number,
     fromTime: string,
     toTime: string,
     timezone: string,
     location: string,
     notes: string | undefined,
-    type: SpanType
+    type: EventType
 }
 
-interface SpanDelete {
+interface EventDelete {
     characterId: number,
     count: number
 }
 
-export class SpanController {
+export class EventController {
 
-    private spanRepository = AppDataSource.getRepository(Span)
+    private spanRepository = AppDataSource.getRepository(Event)
     private charRepository = AppDataSource.getRepository(Character)
 
-    async query(req: Request<unknown, unknown, unknown, SpanQuery>) {
+    async query(req: Request<unknown, unknown, unknown, EventQuery>) {
         const q = req.query
         const findArgs: any = {
             id: q.id,
@@ -69,7 +70,7 @@ export class SpanController {
         return this.spanRepository.findBy(findArgs)
     }
 
-    async create(req: Request<unknown, unknown, SpanCreate, unknown>) {
+    async create(req: Request<unknown, unknown, EventCreate, unknown>) {
         const q = req.body
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 
@@ -100,6 +101,9 @@ export class SpanController {
             age = age.plus(addedAge).normalize()
         }
 
+        // Calculate span remaining for char
+        let spanRemaining = Duration.fromISO(char.remainingSpan.toISO())
+
         // Convert to postgres-interval
         // Hacky but postgres-interval can't be constructed from ISO 8601 strings
         const pgInterval = Object.assign(parse(""), age.toObject())
@@ -112,7 +116,7 @@ export class SpanController {
             age: pgInterval
         })
 
-        const span = Object.assign(new Span(), q, {
+        const span = Object.assign(new Event(), q, {
             character: char,
             order: char.nextSpanOrder,
             charAge: pgInterval
@@ -120,7 +124,7 @@ export class SpanController {
         return await this.spanRepository.save(span)
     }
 
-    async remove(req: Request<unknown, unknown, SpanDelete, unknown>) {
+    async remove(req: Request<unknown, unknown, EventDelete, unknown>) {
         const q = req.body
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 
