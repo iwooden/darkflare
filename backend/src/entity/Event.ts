@@ -43,7 +43,7 @@ export class Event {
     charRemainingSpan: IPostgresInterval
 
     @Column()
-    charSpanLevel: number
+    charSpannerLevel: number
 
     @Column()
     timezone: string

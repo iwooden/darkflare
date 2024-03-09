@@ -3,8 +3,8 @@ import { Request } from "express"
 import { Party } from "../entity/Party"
 
 interface PartyQuery {
-    id: number | undefined,
-    name: string | undefined,
+    id?: number,
+    name?: string,
 }
 
 interface PartyCreate {

@@ -17,6 +17,15 @@ export class Character {
     })
     age: IPostgresInterval
 
+    @Column({
+        type: 'interval',
+        default: '0'
+    })
+    remainingSpan: IPostgresInterval
+
+    @Column({ default: 0 })
+    spannerLevel: number
+
     @Column({ default: 0 })
     nextSpanOrder: number
 
