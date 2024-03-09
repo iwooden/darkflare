@@ -106,7 +106,7 @@ export class EventController {
         // If char spans time, decrement reminaing span
         if (q.type === EventType.SpanTime) {
             const start = DateTime.fromISO(q.time)
-            const end = DateTime.fromISO(q.toTime)
+            const end = DateTime.fromISO(q.toTime!)
 
             let spanUsed: Duration;
             if (start < end) {

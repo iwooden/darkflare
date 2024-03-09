@@ -17,49 +17,49 @@ export enum EventType {
 @Unique(["character", "order"])
 export class Event {
     @PrimaryGeneratedColumn()
-    id: number
+    id!: number
 
     @Column()
-    characterId: number
+    characterId!: number
 
     @ManyToOne(() => Character, (character) => character.events, {
         onDelete: "CASCADE"
     })
-    character: Character
+    character!: Character
 
     @Column({ type: 'timestamp' })
-    time: Date
+    time!: Date
 
     @Column({
         type: 'timestamp',
         nullable: true
     })
-    toTime: Date
+    toTime?: Date
 
     @Column({ type: 'interval' })
-    charAge: IPostgresInterval
+    charAge!: IPostgresInterval
 
     @Column({ type: 'interval' })
-    charRemainingSpan: IPostgresInterval
+    charRemainingSpan!: IPostgresInterval
 
     @Column()
-    charSpannerLevel: number
+    charSpannerLevel!: number
 
     @Column()
-    timezone: string
+    timezone!: string
 
     @Column()
-    order: number
+    order!: number
 
     @Column()
-    location: string
+    location!: string
 
     @Column({ nullable: true })
-    notes: string
+    notes?: string
 
     @Column({
         type: 'enum',
         enum: EventType,
     })
-    type: string
+    type!: string
 }

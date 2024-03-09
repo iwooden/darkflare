@@ -6,39 +6,39 @@ import { IPostgresInterval } from "postgres-interval"
 @Entity()
 export class Character {
     @PrimaryGeneratedColumn()
-    id: number
+    id!: number
 
     @Column()
-    name: string
+    name!: string
 
     @Column({
         type: 'interval',
         default: '0'
     })
-    age: IPostgresInterval
+    age!: IPostgresInterval
 
     @Column({
         type: 'interval',
         default: '0'
     })
-    remainingSpan: IPostgresInterval
+    remainingSpan!: IPostgresInterval
 
     @Column({ default: 0 })
-    spannerLevel: number
+    spannerLevel!: number
 
     @Column({ default: 0 })
-    nextSpanOrder: number
+    nextSpanOrder!: number
 
     @Column()
-    partyId: number
+    partyId!: number
 
     @ManyToOne(() => Party, (party) => party.characters, {
         onDelete: "CASCADE"
     })
-    party: Party
+    party!: Party
 
     @OneToMany(() => Event, (span) => span.character, {
         cascade: true
     })
-    events: Event[]
+    events!: Event[]
 }
