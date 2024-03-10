@@ -63,6 +63,7 @@ export class EventController {
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 
         if (!char) {
+            res.statusCode = 400
             return `no char found for id ${q.characterId}`
         }
 
@@ -86,7 +87,7 @@ export class EventController {
         let age = Duration.fromISO(char.age.toISO())
 
         if (lastEvent) {
-            const start = DateTime.fromJSDate(lastEvent.time, { zone: 'UTC' })
+            const start = DateTime.fromJSDate(lastEvent.time)
             const end = DateTime.fromISO(q.time)
 
             const addedAge = Interval.fromDateTimes(start, end).toDuration()
@@ -112,18 +113,15 @@ export class EventController {
             remainingSpan = remainingSpan.minus(spanUsed)
 
             // Create time travel "from" event
-            await this.eventRepository.save(Object.assign(new Event(), {
+            await this.eventRepository.save(Object.assign(new Event(), q, {
                 character: char,
-                time: q.time,
-                toTime: q.toTime,
                 charAge: durationToPg(age),
                 charRemainingSpan: durationToPg(remainingSpan),
                 charSpannerLevel: char.spannerLevel,
-                timezone: q.timezone,
                 order: eventOrder,
-                location: q.location,
-                notes: q.notes,
-                type: q.type
+                fromTime: null,
+                fromTimezone: null,
+                fromLocation: null
             }))
 
             // Increment span order
@@ -135,7 +133,11 @@ export class EventController {
                 fromTime: q.time,
                 toTime: null,
                 timezone: q.toTimezone,
-                location: q.toLocation
+                fromTimezone: q.timezone,
+                toTimezone: null,
+                location: q.toLocation,
+                fromLocation: q.location,
+                toLocation: null
             })
         }
 
@@ -154,16 +156,10 @@ export class EventController {
         })
 
         const event = Object.assign(new Event(), q, {
-            character: char,
-            time: q.time,
             charAge: durationToPg(age),
             charRemainingSpan: durationToPg(remainingSpan),
             charSpannerLevel: char.spannerLevel,
-            timezone: q.timezone,
-            order: eventOrder,
-            location: q.location,
-            notes: q.notes,
-            type: q.type
+            order: eventOrder
         }, secondEventArgs)
         return this.eventRepository.save(event)
     }

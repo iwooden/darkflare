@@ -54,11 +54,23 @@ export class Event {
     @Column()
     timezone!: string
 
+    @Column({ nullable: true })
+    toTimezone?: string
+
+    @Column({ nullable: true })
+    fromTimezone?: string
+
     @Column()
     order!: number
 
     @Column()
     location!: string
+
+    @Column({ nullable: true })
+    toLocation?: string
+
+    @Column({ nullable: true })
+    fromLocation?: string
 
     @Column({ nullable: true })
     notes?: string
