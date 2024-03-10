@@ -36,6 +36,12 @@ export class Event {
     })
     toTime?: Date
 
+    @Column({
+        type: 'timestamp',
+        nullable: true
+    })
+    fromTime?: Date
+
     @Column({ type: 'interval' })
     charAge!: IPostgresInterval
 

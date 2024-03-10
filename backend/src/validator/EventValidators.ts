@@ -19,11 +19,14 @@ const EventCreate = z.object({
     characterId: z.number(),
     time: z.string().datetime(),
     toTime: z.string().datetime().optional(),
-    fromTime: z.string().datetime().optional(),
     timezone: z.string().refine((s) => {
         return timeZoneSet.has(s)
     }),
+    toTimezone: z.string().refine((s) => {
+        return timeZoneSet.has(s)
+    }).optional(),
     location: z.string(),
+    toLocation: z.string().optional(),
     notes: z.string().optional(),
     type: z.nativeEnum(EventType)
 })

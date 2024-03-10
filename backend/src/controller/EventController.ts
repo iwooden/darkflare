@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source"
-import { Request } from "express"
+import { Response } from "express"
 import { Character } from "../entity/Character"
 import { Event, EventType } from "../entity/Event"
 import { Between, LessThan, MoreThan } from "typeorm"
@@ -47,13 +47,30 @@ export class EventController {
         return this.eventRepository.findBy(findArgs)
     }
 
-    async create(req: ReqBody<EventCreate>) {
+    async create(req: ReqBody<EventCreate>, res: Response) {
         const q = req.body
+
+        // Annoying validation here for spanTime
+        // Zod doesn't allow refining without turning zodObject -> zodEffect,
+        // which breaks all the nice type inference stuff
+        if (q.type === EventType.SpanTime) {
+            if (!q.toTime || !q.toTimezone || !q.toLocation) {
+                res.statusCode = 400
+                return "Need to specify toTime, toTimezone and toLocation for type spanTime"
+            }
+        }
+
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 
         if (!char) {
             return `no char found for id ${q.characterId}`
         }
+
+        // Increment this as needed
+        let eventOrder = char.nextSpanOrder
+
+        // Used if second event needed
+        let secondEventArgs: any = {}
 
         // Get last span to update char age
         const lastEvent = await this.eventRepository.findOne({
@@ -74,14 +91,14 @@ export class EventController {
 
             const addedAge = Interval.fromDateTimes(start, end).toDuration()
 
-            age = age.plus(addedAge).rescale()
+            age = age.plus(addedAge)
         }
 
         // Calculate remaining span for char
         let remainingSpan = Duration.fromISO(char.remainingSpan.toISO())
 
-        // If char spans time, decrement reminaing span
         if (q.type === EventType.SpanTime) {
+            // If char spans time, decrement reminaing span
             const start = DateTime.fromISO(q.time)
             const end = DateTime.fromISO(q.toTime!)
 
@@ -92,7 +109,34 @@ export class EventController {
                 spanUsed = Interval.fromDateTimes(end, start).toDuration()
             }
 
-            remainingSpan = remainingSpan.minus(spanUsed).rescale()
+            remainingSpan = remainingSpan.minus(spanUsed)
+
+            // Create time travel "from" event
+            await this.eventRepository.save(Object.assign(new Event(), {
+                character: char,
+                time: q.time,
+                toTime: q.toTime,
+                charAge: durationToPg(age),
+                charRemainingSpan: durationToPg(remainingSpan),
+                charSpannerLevel: char.spannerLevel,
+                timezone: q.timezone,
+                order: eventOrder,
+                location: q.location,
+                notes: q.notes,
+                type: q.type
+            }))
+
+            // Increment span order
+            eventOrder += 1
+
+            // Create args for "bookend" event
+            Object.assign(secondEventArgs, {
+                time: q.toTime,
+                fromTime: q.time,
+                toTime: null,
+                timezone: q.toTimezone,
+                location: q.toLocation
+            })
         }
 
         // If char finished resting, reset remaining span
@@ -104,18 +148,23 @@ export class EventController {
         await this.charRepository.update({
             id: q.characterId,
         }, {
-            nextSpanOrder: char.nextSpanOrder + 1,
+            nextSpanOrder: eventOrder + 1,
             age: durationToPg(age),
             remainingSpan: durationToPg(remainingSpan)
         })
 
         const event = Object.assign(new Event(), q, {
             character: char,
-            order: char.nextSpanOrder,
+            time: q.time,
             charAge: durationToPg(age),
             charRemainingSpan: durationToPg(remainingSpan),
-            charSpannerLevel: char.spannerLevel
-        })
+            charSpannerLevel: char.spannerLevel,
+            timezone: q.timezone,
+            order: eventOrder,
+            location: q.location,
+            notes: q.notes,
+            type: q.type
+        }, secondEventArgs)
         return this.eventRepository.save(event)
     }
 
