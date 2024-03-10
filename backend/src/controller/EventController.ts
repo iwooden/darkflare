@@ -67,13 +67,13 @@ export class EventController {
             return `no char found for id ${q.characterId}`
         }
 
-        // Increment this as needed
+        // May be modified depending on event type
         let eventOrder = char.nextSpanOrder
-
-        // Used if second event needed
+        let age = Duration.fromISO(char.age.toISO())
+        let remainingSpan = Duration.fromISO(char.remainingSpan.toISO())
         let secondEventArgs: any = {}
 
-        // Get last span to update char age
+        // Get last event to update char age
         const lastEvent = await this.eventRepository.findOne({
             where: {
                 characterId: q.characterId
@@ -84,8 +84,6 @@ export class EventController {
         })
 
         // Calculate age increment for char
-        let age = Duration.fromISO(char.age.toISO())
-
         if (lastEvent) {
             const start = DateTime.fromJSDate(lastEvent.time)
             const end = DateTime.fromISO(q.time)
@@ -95,55 +93,53 @@ export class EventController {
             age = age.plus(addedAge)
         }
 
-        // Calculate remaining span for char
-        let remainingSpan = Duration.fromISO(char.remainingSpan.toISO())
-
-        if (q.type === EventType.SpanTime) {
-            // If char spans time, decrement reminaing span
-            const start = DateTime.fromISO(q.time)
-            const end = DateTime.fromISO(q.toTime!)
-
-            let spanUsed: Duration;
-            if (start < end) {
-                spanUsed = Interval.fromDateTimes(start, end).toDuration()
-            } else {
-                spanUsed = Interval.fromDateTimes(end, start).toDuration()
+        // Event type handlers
+        switch (q.type) {
+            case EventType.RestEnd: {
+                // If char finished resting, reset remaining span
+                remainingSpan = SpannerLevelTable[char.spannerLevel]
+                break;
             }
+            case EventType.SpanTime: {
+                // Calculate reminaing span
+                const start = DateTime.fromISO(q.time)
+                const end = DateTime.fromISO(q.toTime!)
 
-            remainingSpan = remainingSpan.minus(spanUsed)
+                let spanUsed: Duration;
+                if (start < end) {
+                    spanUsed = Interval.fromDateTimes(start, end).toDuration()
+                } else {
+                    spanUsed = Interval.fromDateTimes(end, start).toDuration()
+                }
 
-            // Create time travel "from" event
-            await this.eventRepository.save(Object.assign(new Event(), q, {
-                character: char,
-                charAge: durationToPg(age),
-                charRemainingSpan: durationToPg(remainingSpan),
-                charSpannerLevel: char.spannerLevel,
-                order: eventOrder,
-                fromTime: null,
-                fromTimezone: null,
-                fromLocation: null
-            }))
+                remainingSpan = remainingSpan.minus(spanUsed)
 
-            // Increment span order
-            eventOrder += 1
+                // Create time travel "from" event
+                await this.eventRepository.save(Object.assign(new Event(), q, {
+                    character: char,
+                    charAge: durationToPg(age),
+                    charRemainingSpan: durationToPg(remainingSpan),
+                    charSpannerLevel: char.spannerLevel,
+                    order: eventOrder
+                }))
 
-            // Create args for "bookend" event
-            Object.assign(secondEventArgs, {
-                time: q.toTime,
-                fromTime: q.time,
-                toTime: null,
-                timezone: q.toTimezone,
-                fromTimezone: q.timezone,
-                toTimezone: null,
-                location: q.toLocation,
-                fromLocation: q.location,
-                toLocation: null
-            })
-        }
+                // Increment span order
+                eventOrder += 1
 
-        // If char finished resting, reset remaining span
-        if (q.type === EventType.RestEnd) {
-            remainingSpan = SpannerLevelTable[char.spannerLevel]
+                // Create args for "bookend" event
+                Object.assign(secondEventArgs, {
+                    time: q.toTime,
+                    fromTime: q.time,
+                    toTime: null,
+                    timezone: q.toTimezone,
+                    fromTimezone: q.timezone,
+                    toTimezone: null,
+                    location: q.toLocation,
+                    fromLocation: q.location,
+                    toLocation: null
+                })
+                break;
+            }
         }
 
         // Increment span order, apply age/remaining span changes
