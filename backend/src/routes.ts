@@ -4,6 +4,8 @@ import { EventController } from "./controller/EventController"
 import { PartyCreateValidator, PartyDeleteValidator, PartyQueryValidator } from "./validator/PartyValidators"
 import { CharCreateValidator, CharDeleteValidator, CharQueryValidator, CharUpdateValidator } from "./validator/CharacterValidators"
 import { EventCreateValidator, EventDeleteValidator, EventQueryValidator } from "./validator/EventValidators"
+import { RangeController } from "./controller/RangeController"
+import { RangeQueryValidator } from "./validator/RangeValidators"
 
 export const Routes = [
     // event routes
@@ -74,4 +76,13 @@ export const Routes = [
         action: "remove",
         validator: PartyDeleteValidator
     },
+
+    // range routes
+    {
+        method: "get",
+        route: "/ranges",
+        controller: RangeController,
+        action: "query",
+        validator: RangeQueryValidator
+    }
 ]

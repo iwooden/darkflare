@@ -1,10 +1,10 @@
-import { Unique, Entity, PrimaryGeneratedColumn, JoinColumn, Column, ManyToOne } from "typeorm"
+import { Unique, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
 import { Character } from "./Character"
-import { IPostgresInterval } from "postgres-interval"
+import { pgDurationTransform } from "../util/pgUtils"
+import { Duration } from "luxon"
 
 export enum EventType {
     SpanTime = 'spanTime',
-    SpanTele = 'spanTele',
     Birth = 'birth',
     Death = 'death',
     LocationChange = 'locationChange',
@@ -42,11 +42,17 @@ export class Event {
     })
     fromTime?: Date
 
-    @Column({ type: 'interval' })
-    charAge!: IPostgresInterval
+    @Column({
+        type: 'interval',
+        transformer: pgDurationTransform
+    })
+    charAge!: Duration
 
-    @Column({ type: 'interval' })
-    charRemainingSpan!: IPostgresInterval
+    @Column({
+        type: 'interval',
+        transformer: pgDurationTransform
+    })
+    charRemainingSpan!: Duration
 
     @Column()
     charSpannerLevel!: number

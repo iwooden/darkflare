@@ -1,7 +1,9 @@
 import { OneToMany, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
 import { Event } from "./Event"
 import { Party } from "./Party"
-import { IPostgresInterval } from "postgres-interval"
+import { Range } from "./Range"
+import { pgDurationTransform } from "../util/pgUtils"
+import { Duration } from "luxon"
 
 @Entity()
 export class Character {
@@ -13,21 +15,24 @@ export class Character {
 
     @Column({
         type: 'interval',
-        default: '0'
+        transformer: pgDurationTransform
     })
-    age!: IPostgresInterval
+    age!: Duration
 
     @Column({
         type: 'interval',
-        default: '0'
+        transformer: pgDurationTransform
     })
-    remainingSpan!: IPostgresInterval
+    remainingSpan!: Duration
 
     @Column({ default: 0 })
     spannerLevel!: number
 
     @Column({ default: 0 })
     nextSpanOrder!: number
+
+    @Column({ default: 0 })
+    nextRangeOrder!: number
 
     @Column()
     partyId!: number
@@ -37,8 +42,13 @@ export class Character {
     })
     party!: Party
 
-    @OneToMany(() => Event, (span) => span.character, {
+    @OneToMany(() => Event, (event) => event.character, {
         cascade: true
     })
     events!: Event[]
+
+    @OneToMany(() => Range, (range) => range.character, {
+        cascade: true
+    })
+    ranges!: Range[]
 }

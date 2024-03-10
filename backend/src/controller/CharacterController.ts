@@ -2,9 +2,9 @@ import { AppDataSource } from "../data-source"
 import { Character } from "../entity/Character"
 import { Party } from "../entity/Party"
 import { SpannerLevelTable } from "../util/spannerLevelTable"
-import { durationToPg } from "../util/durationToPG"
 import { ReqBody, ReqQuery } from "../util/reqTypes"
 import { CharCreate, CharDelete, CharQuery, CharUpdate } from "../validator/CharacterValidators"
+import { Duration } from "luxon"
 
 export class CharacterController {
 
@@ -27,8 +27,8 @@ export class CharacterController {
         const remainingSpan = SpannerLevelTable[q.spannerLevel || 0];
 
         const char = Object.assign(new Character(), q, {
-            party: party,
-            remainingSpan: durationToPg(remainingSpan)
+            remainingSpan: remainingSpan,
+            age: Duration.fromISO('P0Y')
         })
 
         return this.charRepository.save(char);

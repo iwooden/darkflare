@@ -2,10 +2,10 @@ import { AppDataSource } from "../data-source"
 import { Response } from "express"
 import { Character } from "../entity/Character"
 import { Event, EventType } from "../entity/Event"
+import { Range } from "../entity/Range"
 import { Between, LessThan, MoreThan } from "typeorm"
 import { DateTime, Duration, Interval } from "luxon"
 import { SpannerLevelTable } from "../util/spannerLevelTable"
-import { durationToPg } from "../util/durationToPG"
 import { EventCreate, EventDelete, EventQuery } from "../validator/EventValidators"
 import { ReqBody, ReqQuery } from "../util/reqTypes"
 
@@ -13,6 +13,7 @@ export class EventController {
 
     private eventRepository = AppDataSource.getRepository(Event)
     private charRepository = AppDataSource.getRepository(Character)
+    private rangeRepository = AppDataSource.getRepository(Range)
 
     async query(req: ReqQuery<EventQuery>) {
         const q = req.query
@@ -69,8 +70,9 @@ export class EventController {
 
         // May be modified depending on event type
         let eventOrder = char.nextSpanOrder
-        let age = Duration.fromISO(char.age.toISO())
-        let remainingSpan = Duration.fromISO(char.remainingSpan.toISO())
+        let rangeOrder = char.nextRangeOrder
+        let age = char.age
+        let remainingSpan = char.remainingSpan
         let secondEventArgs: any = {}
 
         // Get last event to update char age
@@ -85,12 +87,37 @@ export class EventController {
 
         // Calculate age increment for char
         if (lastEvent) {
-            const start = DateTime.fromJSDate(lastEvent.time)
-            const end = DateTime.fromISO(q.time)
+            const start = DateTime.fromJSDate(lastEvent.time, {zone: 'UTC'})
+            const end = DateTime.fromISO(q.time, {zone: 'UTC'})
 
             const addedAge = Interval.fromDateTimes(start, end).toDuration()
 
             age = age.plus(addedAge)
+        } else {
+            //First event should be 'birth' type to establish age
+            if (q.type !== EventType.Birth) {
+                res.statusCode = 400
+                return `first event for char ${q.characterId} should be type 'birth'`
+            }
+        }
+
+        let lastRange = await this.rangeRepository.findOne({
+            where: {
+                characterId: q.characterId
+            },
+            order: {
+                order: 'DESC'
+            }
+        })
+
+        // Create initial range if one doesn't exist
+        if (!lastRange) {
+            const start = DateTime.fromISO(q.time)
+            const initRange = Interval.fromDateTimes(start, start)
+            lastRange = await this.rangeRepository.save(Object.assign(new Range(), q, {
+                timerange: initRange,
+                order: rangeOrder
+            }))
         }
 
         // Event type handlers
@@ -117,8 +144,8 @@ export class EventController {
                 // Create time travel "from" event
                 await this.eventRepository.save(Object.assign(new Event(), q, {
                     character: char,
-                    charAge: durationToPg(age),
-                    charRemainingSpan: durationToPg(remainingSpan),
+                    charAge: age,
+                    charRemainingSpan: remainingSpan,
                     charSpannerLevel: char.spannerLevel,
                     order: eventOrder
                 }))
@@ -147,13 +174,13 @@ export class EventController {
             id: q.characterId,
         }, {
             nextSpanOrder: eventOrder + 1,
-            age: durationToPg(age),
-            remainingSpan: durationToPg(remainingSpan)
+            age: age,
+            remainingSpan: remainingSpan
         })
 
         const event = Object.assign(new Event(), q, {
-            charAge: durationToPg(age),
-            charRemainingSpan: durationToPg(remainingSpan),
+            charAge: age,
+            charRemainingSpan: remainingSpan,
             charSpannerLevel: char.spannerLevel,
             order: eventOrder
         }, secondEventArgs)
