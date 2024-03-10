@@ -1,6 +1,6 @@
 import { Duration } from "luxon"
 import { IPostgresInterval } from "postgres-interval"
-import * as parse from "postgres-interval"
+import parse from "postgres-interval"
 
 export const durationToPg = (duration: Duration): IPostgresInterval => {
     // Convert Luxon duration to postgres-interval

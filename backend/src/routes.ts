@@ -1,24 +1,30 @@
 import { CharacterController } from "./controller/CharacterController"
 import { PartyController } from "./controller/PartyController"
 import { EventController } from "./controller/EventController"
+import { PartyCreateValidator, PartyDeleteValidator, PartyQueryValidator } from "./validator/PartyValidators"
+import { CharCreateValidator, CharDeleteValidator, CharQueryValidator, CharUpdateValidator } from "./validator/CharacterValidators"
+import { EventCreateValidator, EventDeleteValidator, EventQueryValidator } from "./validator/EventValidators"
 
 export const Routes = [
-    // span routes
+    // event routes
     {
         method: "get",
-        route: "/spans",
+        route: "/events",
         controller: EventController,
-        action: "query"
+        action: "query",
+        validator: EventQueryValidator
     }, {
         method: "post",
-        route: "/spans",
+        route: "/events",
         controller: EventController,
-        action: "create"
+        action: "create",
+        validator: EventCreateValidator
     }, {
         method: "post",
-        route: "/spans/remove",
+        route: "/events/remove",
         controller: EventController,
-        action: "remove"
+        action: "remove",
+        validator: EventDeleteValidator
     },
 
     // char routes
@@ -26,22 +32,26 @@ export const Routes = [
         method: "get",
         route: "/chars",
         controller: CharacterController,
-        action: "query"
+        action: "query",
+        validator: CharQueryValidator
     }, {
         method: "post",
         route: "/chars",
         controller: CharacterController,
-        action: "create"
+        action: "create",
+        validator: CharCreateValidator
     }, {
         method: "post",
         route: "/chars/remove",
         controller: CharacterController,
-        action: "remove"
+        action: "remove",
+        validator: CharDeleteValidator
     }, {
         method: "patch",
         route: "/chars",
         controller: CharacterController,
-        action: "update"
+        action: "update",
+        validator: CharUpdateValidator
     },
 
     // party routes
@@ -49,16 +59,19 @@ export const Routes = [
         method: "get",
         route: "/parties",
         controller: PartyController,
-        action: "query"
+        action: "query",
+        validator: PartyQueryValidator
     }, {
         method: "post",
         route: "/parties",
         controller: PartyController,
-        action: "create"
+        action: "create",
+        validator: PartyCreateValidator
     }, {
         method: "post",
         route: "/parties/remove",
         controller: PartyController,
-        action: "remove"
+        action: "remove",
+        validator: PartyDeleteValidator
     },
 ]

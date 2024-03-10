@@ -1,30 +1,18 @@
 import { AppDataSource } from "../data-source"
-import { Request } from "express"
 import { Party } from "../entity/Party"
-
-interface PartyQuery {
-    id?: number,
-    name?: string,
-}
-
-interface PartyCreate {
-    name: string,
-}
-
-interface PartyDelete {
-    id: number,
-}
+import { PartyCreate, PartyDelete, PartyQuery } from "../validator/PartyValidators"
+import { ReqBody, ReqQuery } from "../util/reqTypes"
 
 export class PartyController {
 
     private partyRepository = AppDataSource.getRepository(Party)
 
-    async query(req: Request<unknown, unknown, unknown, PartyQuery>) {
+    async query(req: ReqQuery<PartyQuery>) {
         const q = req.query
         return this.partyRepository.findBy(q)
     }
 
-    async create(req: Request<unknown, unknown, PartyCreate, unknown>) {
+    async create(req: ReqBody<PartyCreate>) {
         const q = req.body
 
         const party = Object.assign(new Party(), q)
@@ -32,7 +20,7 @@ export class PartyController {
         return this.partyRepository.save(party);
     }
 
-    async remove(req: Request<unknown, unknown, PartyDelete, unknown>) {
+    async remove(req: ReqBody<PartyDelete>) {
         const q = req.body
 
         const party = await this.partyRepository.findOneBy(q);

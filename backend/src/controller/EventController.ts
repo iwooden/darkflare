@@ -6,43 +6,20 @@ import { Between, LessThan, MoreThan } from "typeorm"
 import { DateTime, Duration, Interval } from "luxon"
 import { SpannerLevelTable } from "../util/spannerLevelTable"
 import { durationToPg } from "../util/durationToPG"
-
-interface EventQuery {
-    id?: number,
-    charId?: number,
-    order?: number,
-    timeStart?: string,
-    timeEnd?: string,
-    orderStart?: number,
-    orderEnd?: number
-}
-
-interface EventCreate {
-    characterId: number,
-    time: string,
-    toTime?: string,
-    timezone: string,
-    location: string,
-    notes?: string,
-    type: EventType
-}
-
-interface EventDelete {
-    characterId: number,
-    count: number
-}
+import { EventCreate, EventDelete, EventQuery } from "../validator/EventValidators"
+import { ReqBody, ReqQuery } from "../util/reqTypes"
 
 export class EventController {
 
     private eventRepository = AppDataSource.getRepository(Event)
     private charRepository = AppDataSource.getRepository(Character)
 
-    async query(req: Request<unknown, unknown, unknown, EventQuery>) {
+    async query(req: ReqQuery<EventQuery>) {
         const q = req.query
         const findArgs: any = {
             id: q.id,
             order: q.order,
-            characterId: q.charId
+            characterId: q.characterId
         }
 
         if (q.timeStart && q.timeEnd) {
@@ -70,7 +47,7 @@ export class EventController {
         return this.eventRepository.findBy(findArgs)
     }
 
-    async create(req: Request<unknown, unknown, EventCreate, unknown>) {
+    async create(req: ReqBody<EventCreate>) {
         const q = req.body
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 
@@ -142,7 +119,7 @@ export class EventController {
         return this.eventRepository.save(event)
     }
 
-    async remove(req: Request<unknown, unknown, EventDelete, unknown>) {
+    async remove(req: ReqBody<EventDelete>) {
         const q = req.body
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 

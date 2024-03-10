@@ -1,42 +1,22 @@
 import { AppDataSource } from "../data-source"
-import { Request } from "express"
 import { Character } from "../entity/Character"
 import { Party } from "../entity/Party"
 import { SpannerLevelTable } from "../util/spannerLevelTable"
 import { durationToPg } from "../util/durationToPG"
-
-interface CharQuery {
-    id?: number,
-    name?: string,
-}
-
-interface CharCreate {
-    partyId: number,
-    name: string,
-    spannerLevel?: number
-}
-
-interface CharDelete {
-    id: number,
-}
-
-interface CharUpdate {
-    id: number,
-    name: string,
-    spannerLevel?: number
-}
+import { ReqBody, ReqQuery } from "../util/reqTypes"
+import { CharCreate, CharDelete, CharQuery, CharUpdate } from "../validator/CharacterValidators"
 
 export class CharacterController {
 
     private charRepository = AppDataSource.getRepository(Character)
     private partyRepository = AppDataSource.getRepository(Party)
 
-    async query(req: Request<unknown, unknown, unknown, CharQuery>) {
+    async query(req: ReqQuery<CharQuery>) {
         const q = req.query
         return this.charRepository.findBy(q)
     }
 
-    async create(req: Request<unknown, unknown, CharCreate, unknown>) {
+    async create(req: ReqBody<CharCreate>) {
         const q = req.body
         const party = await this.partyRepository.findOneBy({ id: q.partyId })
 
@@ -54,7 +34,7 @@ export class CharacterController {
         return this.charRepository.save(char);
     }
 
-    async update(req: Request<unknown, unknown, CharUpdate, unknown>) {
+    async update(req: ReqBody<CharUpdate>) {
         const q = req.body
         let char = await this.charRepository.findOneBy({ id: q.id })
 
@@ -67,7 +47,7 @@ export class CharacterController {
         return this.charRepository.save(char);
     }
 
-    async remove(req: Request<unknown, unknown, CharDelete, unknown>) {
+    async remove(req: ReqBody<CharDelete>) {
         const q = req.body
 
         const char = await this.charRepository.findOneBy(q);
