@@ -2,7 +2,6 @@ import { DateTime, Duration, Interval } from "luxon"
 import parse, { IPostgresInterval } from "postgres-interval"
 
 export const displayDuration = (d: Duration) => {
-    // Use only "lossless" units for DB
     return d.shiftTo(
         "years",
         "months",
@@ -24,8 +23,9 @@ const normalizeDurationForPG = (d: Duration) => {
 }
 
 const durationToPg = (d: Duration) => {
+    const nd = normalizeDurationForPG(d)
     // Hacky but postgres-interval can't be constructed from ISO 8601 strings
-    return Object.assign(parse(""), (normalizeDurationForPG(d)).toObject())
+    return Object.assign(parse(""), nd.toObject())
 }
 
 const pgToDuration = (i: IPostgresInterval) => {

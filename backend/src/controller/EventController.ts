@@ -74,7 +74,7 @@ export class EventController {
         let rangeOrder = char.nextRangeOrder
         let age = char.age
         let remainingSpan = char.remainingSpan
-        let secondEventArgs: any = {}
+        let secondEvent = new Event()
 
         const lastEvent = await this.eventRepository.findOne({
             where: {
@@ -119,10 +119,11 @@ export class EventController {
             })
         } else {
             // Create initial range if one doesn't exist
-            lastRange = await this.rangeRepository.save(Object.assign(new Range(), q, {
+            lastRange = this.rangeRepository.merge(new Range(), q, {
                 timerange: Interval.fromDateTimes(parsedTime, parsedTime),
                 order: rangeOrder
-            }))
+            })
+            await this.rangeRepository.save(lastRange)
             rangeOrder += 1
         }
 
@@ -136,13 +137,14 @@ export class EventController {
             }
             case EventType.SpanTime: {
                 // Create time travel "from" event
-                await this.eventRepository.save(Object.assign(new Event(), q, {
+                const fromEvent = this.eventRepository.merge(new Event(), q, {
                     charAge: age,
                     charRemainingSpan: remainingSpan,
                     charSpannerLevel: char.spannerLevel,
                     order: eventOrder,
                     rangeId: lastRange.id
-                }))
+                })
+                await this.eventRepository.save(fromEvent)
                 eventOrder += 1
 
                 // Calculate reminaing span
@@ -160,25 +162,23 @@ export class EventController {
                 remainingSpan = remainingSpan.minus(spanUsed)
 
                 // Args for time travel "to" event
-                Object.assign(secondEventArgs, {
+                secondEvent = this.eventRepository.create({
                     time: q.toTime,
                     fromTime: q.time,
-                    toTime: null,
                     timezone: q.toTimezone,
                     fromTimezone: q.timezone,
-                    toTimezone: null,
                     location: q.toLocation,
                     fromLocation: q.location,
-                    toLocation: null
                 })
 
                 // Create new range
-                lastRange = await this.rangeRepository.save(Object.assign(new Range(), q, {
+                lastRange = this.rangeRepository.merge(new Range(), q, {
                     timerange: Interval.fromDateTimes(parsedToTime, parsedToTime),
                     location: q.toLocation,
                     timezone: q.toTimezone,
                     order: rangeOrder
-                }))
+                })
+                await this.rangeRepository.save(lastRange)
                 rangeOrder += 1
 
                 break;
@@ -186,7 +186,7 @@ export class EventController {
         }
 
         // Create event
-        const event = await this.eventRepository.save(Object.assign(
+        const event = this.eventRepository.merge(
             new Event(),
             q,
             {
@@ -196,8 +196,9 @@ export class EventController {
                 order: eventOrder,
                 rangeId: lastRange.id
             },
-            secondEventArgs
-        ))
+            secondEvent
+        )
+        await this.eventRepository.save(event)
         eventOrder += 1
 
         // Apply character updates

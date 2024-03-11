@@ -26,7 +26,7 @@ export class CharacterController {
 
         const remainingSpan = SpannerLevelTable[q.spannerLevel || 0];
 
-        const char = Object.assign(new Character(), q, {
+        const char = this.charRepository.merge(new Character(), q, {
             remainingSpan: remainingSpan,
             age: Duration.fromISO('P0Y')
         })
@@ -42,7 +42,7 @@ export class CharacterController {
             return `no char found for id ${q.id}`
         }
 
-        char = Object.assign(char, q)
+        char = this.charRepository.merge(char, q)
 
         return this.charRepository.save(char);
     }

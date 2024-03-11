@@ -15,7 +15,7 @@ export class PartyController {
     async create(req: ReqBody<PartyCreate>) {
         const q = req.body
 
-        const party = Object.assign(new Party(), q)
+        const party = this.partyRepository.merge(new Party(), q)
 
         return this.partyRepository.save(party);
     }
