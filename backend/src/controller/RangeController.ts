@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source"
-import { ReqBody, ReqQuery } from "../util/reqTypes"
+import { ReqQuery } from "../util/reqTypes"
 import { Range } from "../entity/Range"
 import { RangeQuery } from "../validator/RangeValidators"
 
