@@ -1,23 +1,10 @@
 import express, { Request, Response, NextFunction } from "express"
 import { AppDataSource } from "./data-source"
 import { Routes } from "./routes"
+import { zodValidate } from "./util/validationFormatters"
+import dotenv from "dotenv"
 
-// Generic Zod validator middleware
-const validate = (schema: any) =>
-    async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            if (schema) {
-                await schema.parseAsync({
-                    body: req.body,
-                    query: req.query,
-                    params: req.params,
-                })
-            }
-            return next();
-        } catch (error) {
-            return res.status(400).json(error);
-        }
-    };
+dotenv.config()
 
 AppDataSource.initialize().then(async () => {
     // create express app
@@ -28,7 +15,7 @@ AppDataSource.initialize().then(async () => {
     Routes.forEach(route => {
         (app as any)[route.method](
             route.route,
-            validate(route.validator as any),
+            zodValidate(route.validator as any),
             (req: Request, res: Response, next: Function) => {
                 const result = (new (route.controller as any))[route.action](req, res, next)
                 if (result instanceof Promise) {
@@ -44,7 +31,7 @@ AppDataSource.initialize().then(async () => {
     })
 
     // start express server
-    app.listen(3000)
+    app.listen(process.env.PORT)
 
     console.log("Darkflare backend up on port 3000.")
 
