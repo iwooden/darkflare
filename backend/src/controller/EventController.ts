@@ -6,6 +6,7 @@ import { Range } from "../entity/Range"
 import { Between, LessThan, MoreThan } from "typeorm"
 import { DateTime, Duration, Interval } from "luxon"
 import { SpannerLevelTable } from "../util/spannerLevelTable"
+import { normalizeDuration } from "../util/pgUtils"
 import { EventCreate, EventDelete, EventQuery } from "../validator/EventValidators"
 import { ReqBody, ReqQuery } from "../util/reqTypes"
 
@@ -61,6 +62,7 @@ export class EventController {
             }
         }
 
+        const parsedTime = DateTime.fromISO(q.time, { zone: 'UTC' })
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 
         if (!char) {
@@ -75,7 +77,6 @@ export class EventController {
         let remainingSpan = char.remainingSpan
         let secondEventArgs: any = {}
 
-        // Get last event to update char age
         const lastEvent = await this.eventRepository.findOne({
             where: {
                 characterId: q.characterId
@@ -85,23 +86,25 @@ export class EventController {
             }
         })
 
-        // Calculate age increment for char
         if (lastEvent) {
-            const start = DateTime.fromJSDate(lastEvent.time, {zone: 'UTC'})
-            const end = DateTime.fromISO(q.time, {zone: 'UTC'})
+            // Calculate age increment for char
+            const start = DateTime.fromJSDate(lastEvent.time, { zone: 'UTC' })
+            const end = parsedTime
 
             const addedAge = Interval.fromDateTimes(start, end).toDuration()
 
             age = age.plus(addedAge)
+            console.log(age)
+            console.log(normalizeDuration(age))
         } else {
-            //First event should be 'birth' type to establish age
+            // First event should be 'birth' type to establish age
             if (q.type !== EventType.Birth) {
                 res.statusCode = 400
                 return `first event for char ${q.characterId} should be type 'birth'`
             }
         }
 
-        let lastRange = await this.rangeRepository.findOne({
+        const lastRange = await this.rangeRepository.findOne({
             where: {
                 characterId: q.characterId
             },
@@ -110,14 +113,21 @@ export class EventController {
             }
         })
 
-        // Create initial range if one doesn't exist
-        if (!lastRange) {
-            const start = DateTime.fromISO(q.time)
-            const initRange = Interval.fromDateTimes(start, start)
-            lastRange = await this.rangeRepository.save(Object.assign(new Range(), q, {
+        if (lastRange) {
+            // Extend current range for new event
+            await this.rangeRepository.update({
+                id: lastRange.id
+            }, {
+                timerange: lastRange.timerange.set({ end: parsedTime })
+            })
+        } else {
+            // Create initial range if one doesn't exist
+            const initRange = Interval.fromDateTimes(parsedTime, parsedTime)
+            await this.rangeRepository.save(Object.assign(new Range(), q, {
                 timerange: initRange,
                 order: rangeOrder
             }))
+            rangeOrder += 1
         }
 
         // Event type handlers
@@ -128,32 +138,32 @@ export class EventController {
                 break;
             }
             case EventType.SpanTime: {
-                // Calculate reminaing span
-                const start = DateTime.fromISO(q.time)
-                const end = DateTime.fromISO(q.toTime!)
-
-                let spanUsed: Duration;
-                if (start < end) {
-                    spanUsed = Interval.fromDateTimes(start, end).toDuration()
-                } else {
-                    spanUsed = Interval.fromDateTimes(end, start).toDuration()
-                }
-
-                remainingSpan = remainingSpan.minus(spanUsed)
-
                 // Create time travel "from" event
                 await this.eventRepository.save(Object.assign(new Event(), q, {
-                    character: char,
                     charAge: age,
                     charRemainingSpan: remainingSpan,
                     charSpannerLevel: char.spannerLevel,
                     order: eventOrder
                 }))
 
-                // Increment span order
+                // Increment event order
                 eventOrder += 1
 
-                // Create args for "bookend" event
+                // Calculate reminaing span
+                const parsedToTime = DateTime.fromISO(q.toTime!, { zone: 'UTC' })
+
+                let spanUsed: Duration;
+                if (parsedTime < parsedToTime) {
+                    // Span Up...
+                    spanUsed = Interval.fromDateTimes(parsedTime, parsedToTime).toDuration()
+                } else {
+                    // Span Down
+                    spanUsed = Interval.fromDateTimes(parsedToTime, parsedTime).toDuration()
+                }
+
+                remainingSpan = remainingSpan.minus(spanUsed)
+
+                // Args for time travel "to" event
                 Object.assign(secondEventArgs, {
                     time: q.toTime,
                     fromTime: q.time,
@@ -165,26 +175,50 @@ export class EventController {
                     fromLocation: q.location,
                     toLocation: null
                 })
+
+                // Create new range
+                await this.rangeRepository.save(Object.assign(new Range(), {
+                    characterId: q.characterId,
+                    timerange: Interval.fromDateTimes(parsedToTime, parsedToTime),
+                    location: q.toLocation,
+                    timezone: q.toTimezone,
+                    order: rangeOrder
+                }))
+
+                // Increment range order
+                rangeOrder += 1
                 break;
             }
         }
 
-        // Increment span order, apply age/remaining span changes
+        // Create event
+        const event = await this.eventRepository.save(Object.assign(
+            new Event(),
+            q,
+            {
+                // Normalize durs for JSON representation
+                charAge: normalizeDuration(age),
+                charRemainingSpan: normalizeDuration(remainingSpan),
+                charSpannerLevel: char.spannerLevel,
+                order: eventOrder
+            },
+            secondEventArgs
+        ))
+
+        // Increment event counter
+        eventOrder += 1
+
+        // Apply character updates
         await this.charRepository.update({
             id: q.characterId,
         }, {
-            nextSpanOrder: eventOrder + 1,
+            nextSpanOrder: eventOrder,
+            nextRangeOrder: rangeOrder,
             age: age,
             remainingSpan: remainingSpan
         })
 
-        const event = Object.assign(new Event(), q, {
-            charAge: age,
-            charRemainingSpan: remainingSpan,
-            charSpannerLevel: char.spannerLevel,
-            order: eventOrder
-        }, secondEventArgs)
-        return this.eventRepository.save(event)
+        return event
     }
 
     async remove(req: ReqBody<EventDelete>) {

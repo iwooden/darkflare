@@ -25,10 +25,11 @@ export class CharacterController {
         }
 
         const remainingSpan = SpannerLevelTable[q.spannerLevel || 0];
+        remainingSpan.reconfigure({ conversionAccuracy: 'longterm' })
 
         const char = Object.assign(new Character(), q, {
             remainingSpan: remainingSpan,
-            age: Duration.fromISO('P0Y')
+            age: Duration.fromISO('P0Y', { conversionAccuracy: 'longterm' })
         })
 
         return this.charRepository.save(char);

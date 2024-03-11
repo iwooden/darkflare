@@ -1,15 +1,25 @@
 import { DateTime, Duration, Interval } from "luxon"
 import parse, { IPostgresInterval } from "postgres-interval"
 
-const durationToPg = (d: Duration) => {
+export const normalizeDuration = (d: Duration) => {
     // Luxon uses "weeks", postgres doesn't
-    const normalizedDur = d.shiftTo("years", "months", "days", "hours", "minutes", "seconds")
+    return d.shiftTo(
+        "years",
+        "months",
+        "days",
+        "hours",
+        "minutes",
+        "seconds"
+    )
+}
+
+const durationToPg = (d: Duration) => {
     // Hacky but postgres-interval can't be constructed from ISO 8601 strings
-    return Object.assign(parse(""), normalizedDur.toObject())
+    return Object.assign(parse(""), (normalizeDuration(d)).toObject())
 }
 
 const pgToDuration = (i: IPostgresInterval) => {
-    return Duration.fromISO(i.toISO())
+    return Duration.fromISO(i.toISO(), { conversionAccuracy: 'longterm' })
 }
 
 export const pgDurationTransform = {
