@@ -1,6 +1,6 @@
 import { Unique, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
 import { Character } from "./Character"
-import { pgDurationTransform } from "../util/pgUtils"
+import { displayDuration, pgDurationTransform } from "../util/pgUtils"
 import { Duration } from "luxon"
 
 export enum EventType {
@@ -86,4 +86,12 @@ export class Event {
         enum: EventType,
     })
     type!: string
+
+    // Display to user
+    toJSON() {
+        const obj: any = this
+        obj.charAge = displayDuration(this.charAge)
+        obj.charRemainingSpan = displayDuration(this.charRemainingSpan)
+        return obj
+    }
 }

@@ -6,7 +6,6 @@ import { Range } from "../entity/Range"
 import { Between, LessThan, MoreThan } from "typeorm"
 import { DateTime, Duration, Interval } from "luxon"
 import { SpannerLevelTable } from "../util/spannerLevelTable"
-import { normalizeDuration } from "../util/pgUtils"
 import { EventCreate, EventDelete, EventQuery } from "../validator/EventValidators"
 import { ReqBody, ReqQuery } from "../util/reqTypes"
 
@@ -94,8 +93,6 @@ export class EventController {
             const addedAge = Interval.fromDateTimes(start, end).toDuration()
 
             age = age.plus(addedAge)
-            console.log(age)
-            console.log(normalizeDuration(age))
         } else {
             // First event should be 'birth' type to establish age
             if (q.type !== EventType.Birth) {
@@ -196,9 +193,8 @@ export class EventController {
             new Event(),
             q,
             {
-                // Normalize durs for JSON representation
-                charAge: normalizeDuration(age),
-                charRemainingSpan: normalizeDuration(remainingSpan),
+                charAge: age,
+                charRemainingSpan: remainingSpan,
                 charSpannerLevel: char.spannerLevel,
                 order: eventOrder
             },

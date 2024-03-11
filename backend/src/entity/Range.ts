@@ -31,4 +31,11 @@ export class Range {
 
     @Column()
     order!: number
+
+    // Display to user
+    toJSON() {
+        const obj: any = this
+        obj.timerange = obj.timerange.toISO()
+        return obj
+    }
 }

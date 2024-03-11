@@ -2,7 +2,7 @@ import { OneToMany, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "ty
 import { Event } from "./Event"
 import { Party } from "./Party"
 import { Range } from "./Range"
-import { pgDurationTransform } from "../util/pgUtils"
+import { displayDuration, pgDurationTransform } from "../util/pgUtils"
 import { Duration } from "luxon"
 
 @Entity()
@@ -51,4 +51,12 @@ export class Character {
         cascade: true
     })
     ranges!: Range[]
+
+    // Display to user
+    toJSON() {
+        const obj: any = this
+        obj.age = displayDuration(this.age)
+        obj.remainingSpan = displayDuration(this.remainingSpan)
+        return obj
+    }
 }
