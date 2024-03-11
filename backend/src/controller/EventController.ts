@@ -101,7 +101,7 @@ export class EventController {
             }
         }
 
-        const lastRange = await this.rangeRepository.findOne({
+        let lastRange = await this.rangeRepository.findOne({
             where: {
                 characterId: q.characterId
             },
@@ -119,9 +119,8 @@ export class EventController {
             })
         } else {
             // Create initial range if one doesn't exist
-            const initRange = Interval.fromDateTimes(parsedTime, parsedTime)
-            await this.rangeRepository.save(Object.assign(new Range(), q, {
-                timerange: initRange,
+            lastRange = await this.rangeRepository.save(Object.assign(new Range(), q, {
+                timerange: Interval.fromDateTimes(parsedTime, parsedTime),
                 order: rangeOrder
             }))
             rangeOrder += 1
@@ -132,6 +131,7 @@ export class EventController {
             case EventType.RestEnd: {
                 // If char finished resting, reset remaining span
                 remainingSpan = SpannerLevelTable[char.spannerLevel]
+
                 break;
             }
             case EventType.SpanTime: {
@@ -140,10 +140,9 @@ export class EventController {
                     charAge: age,
                     charRemainingSpan: remainingSpan,
                     charSpannerLevel: char.spannerLevel,
-                    order: eventOrder
+                    order: eventOrder,
+                    rangeId: lastRange.id
                 }))
-
-                // Increment event order
                 eventOrder += 1
 
                 // Calculate reminaing span
@@ -174,16 +173,14 @@ export class EventController {
                 })
 
                 // Create new range
-                await this.rangeRepository.save(Object.assign(new Range(), {
-                    characterId: q.characterId,
+                lastRange = await this.rangeRepository.save(Object.assign(new Range(), q, {
                     timerange: Interval.fromDateTimes(parsedToTime, parsedToTime),
                     location: q.toLocation,
                     timezone: q.toTimezone,
                     order: rangeOrder
                 }))
-
-                // Increment range order
                 rangeOrder += 1
+
                 break;
             }
         }
@@ -196,12 +193,11 @@ export class EventController {
                 charAge: age,
                 charRemainingSpan: remainingSpan,
                 charSpannerLevel: char.spannerLevel,
-                order: eventOrder
+                order: eventOrder,
+                rangeId: lastRange.id
             },
             secondEventArgs
         ))
-
-        // Increment event counter
         eventOrder += 1
 
         // Apply character updates

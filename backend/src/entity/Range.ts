@@ -1,7 +1,8 @@
 import { Interval } from "luxon"
-import { Unique, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
+import { Unique, OneToMany, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm"
 import { pgIntervalTransform } from "../util/pgUtils"
 import { Character } from "./Character"
+import { Event } from "./Event"
 
 @Entity()
 @Unique(["character", "order"])
@@ -16,6 +17,11 @@ export class Range {
         onDelete: "CASCADE"
     })
     character!: Character
+
+    @OneToMany(() => Event, (event) => event.range, {
+        cascade: true
+    })
+    events!: Event[]
 
     @Column({
         type: 'tsrange',

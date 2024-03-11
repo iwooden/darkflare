@@ -2,6 +2,7 @@ import { Unique, Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeo
 import { Character } from "./Character"
 import { displayDuration, pgDurationTransform } from "../util/pgUtils"
 import { Duration } from "luxon"
+import { Range } from "./Range"
 
 export enum EventType {
     SpanTime = 'spanTime',
@@ -26,6 +27,14 @@ export class Event {
         onDelete: "CASCADE"
     })
     character!: Character
+
+    @Column()
+    rangeId!: number
+
+    @ManyToOne(() => Range, (range) => range.events, {
+        onDelete: "CASCADE"
+    })
+    range!: Range
 
     @Column({ type: 'timestamp' })
     time!: Date
