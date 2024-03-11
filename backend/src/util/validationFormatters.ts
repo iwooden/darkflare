@@ -1,19 +1,20 @@
-import { AnyZodObject, z } from "zod";
+import { AnyZodObject, ZodEffects, z } from "zod";
 
-export const query = (o: AnyZodObject) => {
+// The ZodEffects<any> type is because we might have called refine
+export const query = (o: AnyZodObject | ZodEffects<any>) => {
     return z.object({
-       query: o
+        query: o
     })
 }
 
-export const body = (o: AnyZodObject) => {
+export const body = (o: AnyZodObject | ZodEffects<any>) => {
     return z.object({
-       body: o
+        body: o
     })
 }
 
-export const params = (o: AnyZodObject) => {
+export const params = (o: AnyZodObject | ZodEffects<any>) => {
     return z.object({
        params: o
-    })
+    }).strict()
 }

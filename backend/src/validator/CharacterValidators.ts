@@ -24,7 +24,8 @@ export type CharDelete = z.infer<typeof CharDelete>
 
 const CharUpdate = z.object({
     id: z.number(),
-    name: z.string(),
+    partyId: z.number().optional(),
+    name: z.string().optional(),
     spannerLevel: z.number().optional()
 }).strict()
 export const CharUpdateValidator = body(CharUpdate)

@@ -51,16 +51,6 @@ export class EventController {
     async create(req: ReqBody<EventCreate>, res: Response) {
         const q = req.body
 
-        // Annoying validation here for spanTime
-        // Zod doesn't allow refining without turning zodObject -> zodEffect,
-        // which breaks all the nice type inference stuff
-        if (q.type === EventType.SpanTime) {
-            if (!q.toTime || !q.toTimezone || !q.toLocation) {
-                res.statusCode = 400
-                return "Need to specify toTime, toTimezone and toLocation for type spanTime"
-            }
-        }
-
         const parsedTime = DateTime.fromISO(q.time, { zone: 'UTC' })
         const char = await this.charRepository.findOneBy({ id: q.characterId });
 
