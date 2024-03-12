@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { EventType } from "../entity/Event"
 import { timeZoneSet } from "../util/timezoneDict"
-import { body, query } from "../util/validationFormatters"
+import { body, mustInclude, mustNotInclude, query } from "../util/validationFormatters"
 
 const EventQuery = z.object({
     id: z.number().optional(),
@@ -31,22 +31,19 @@ const EventCreate = z.object({
     type: z.nativeEnum(EventType)
 }).strict()
 export const EventCreateValidator = body(EventCreate.superRefine((o, ctx) => {
-    if (o.type === EventType.SpanTime) {
-        if (!o.toTime)
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Must specify toTime when eventType is spanTime'
-            })
-        if (!o.toTimezone)
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Must specify toTimezone when eventType is spanTime'
-            })
-        if (!o.toLocation)
-            ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: 'Must specify toLocation when eventType is spanTime'
-            })
+    // Handle EventType-specific validations
+    switch (o.type) {
+        case EventType.SpanTime: {
+            mustInclude(o, ctx, ['toTime', 'toTimezone', 'toLocation'])
+            break;
+        }
+        case EventType.LocationChange: {
+            mustInclude(o, ctx, ['toLocation', 'toTimezone'])
+            break;
+        }
+        default: {
+            mustNotInclude(o, ctx, ['toTime', 'toTimezone', 'toLocation'])
+        }
     }
 }))
 export type EventCreate = z.infer<typeof EventCreate>

@@ -16,7 +16,7 @@ export const body = (o: AnyZodObject | ZodEffects<any>) => {
 
 export const params = (o: AnyZodObject | ZodEffects<any>) => {
     return z.object({
-       params: o
+        params: o
     }).strict()
 }
 
@@ -36,3 +36,27 @@ export const zodValidate = (schema: any) =>
             return res.status(400).json(error);
         }
     };
+
+export const mustInclude = (o: any, ctx: z.RefinementCtx, params: string[]) => {
+    params.forEach((param) => {
+        if (!o[param]) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Must specify ${param} when eventType is ${o.type}`,
+                path: [param]
+            })
+        }
+    })
+}
+
+export const mustNotInclude = (o: any, ctx: z.RefinementCtx, params: string[]) => {
+    params.forEach((param) => {
+        if (o[param]) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Must not specify ${param} when eventType is ${o.type}`,
+                path: [param]
+            })
+        }
+    })
+}
