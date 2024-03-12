@@ -125,6 +125,21 @@ export class EventController {
 
                 break;
             }
+            case EventType.LocationChange: {
+                secondEvent = this.eventRepository.create({
+                    fromLocation: q.location
+                })
+
+                // Create new range
+                lastRange = this.rangeRepository.merge(new Range(), q, {
+                    timerange: Interval.fromDateTimes(parsedTime, parsedTime),
+                    location: q.toLocation,
+                    timezone: q.toTimezone,
+                    order: rangeOrder
+                })
+                await this.rangeRepository.save(lastRange)
+                rangeOrder += 1
+            }
             case EventType.SpanTime: {
                 // Create time travel "from" event
                 const fromEvent = this.eventRepository.merge(new Event(), q, {
