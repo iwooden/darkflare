@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { body, query } from "../util/validationFormatters";
+import { query } from "../util/validationFormatters";
 
 const RangeQuery = z
   .object({

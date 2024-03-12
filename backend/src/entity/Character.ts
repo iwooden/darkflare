@@ -60,7 +60,7 @@ export class Character {
 
   // Display to user
   toJSON() {
-    const obj: any = this;
+    const obj: any = { ...this };
     obj.age = displayDuration(this.age);
     obj.remainingSpan = displayDuration(this.remainingSpan);
     return obj;

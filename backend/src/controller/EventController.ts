@@ -145,6 +145,8 @@ export class EventController {
         });
         await this.rangeRepository.save(lastRange);
         rangeOrder += 1;
+
+        break;
       }
       case EventType.SpanTime: {
         // Create time travel "from" event

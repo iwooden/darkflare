@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
 import { zodValidate } from "./util/validationFormatters";
@@ -17,7 +17,7 @@ AppDataSource.initialize()
       (app as any)[route.method](
         route.route,
         zodValidate(route.validator as any),
-        (req: Request, res: Response, next: Function) => {
+        (req: Request, res: Response, next: NextFunction) => {
           const result = new (route.controller as any)()[route.action](
             req,
             res,

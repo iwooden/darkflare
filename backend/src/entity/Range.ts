@@ -47,7 +47,7 @@ export class Range {
 
   // Display to user
   toJSON() {
-    const obj: any = this;
+    const obj: any = { ...this };
     obj.timerange = obj.timerange.toISO();
     return obj;
   }

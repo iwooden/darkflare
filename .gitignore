@@ -1,5 +1,6 @@
-.DS_Store
-.idea
+*.DS_Store
 *.log
-tmp/
+*.env
 
+**/node_modules
+**/build

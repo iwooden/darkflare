@@ -104,7 +104,7 @@ export class Event {
 
   // Display to user
   toJSON() {
-    const obj: any = this;
+    const obj: any = { ...this };
     obj.charAge = displayDuration(this.charAge);
     obj.charRemainingSpan = displayDuration(this.charRemainingSpan);
     return obj;
