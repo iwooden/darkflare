@@ -1,16 +1,16 @@
-import { OneToMany, Entity, PrimaryGeneratedColumn, Column } from "typeorm"
-import { Character } from "./Character"
+import { OneToMany, Entity, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Character } from "./Character";
 
 @Entity()
 export class Party {
-    @PrimaryGeneratedColumn()
-    id!: number
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-    @Column()
-    name!: string
+  @Column()
+  name!: string;
 
-    @OneToMany(() => Character, (char) => char.party, {
-        cascade: true
-    })
-    characters!: Character[]
+  @OneToMany(() => Character, (char) => char.party, {
+    cascade: true,
+  })
+  characters!: Character[];
 }
