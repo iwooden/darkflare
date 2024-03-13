@@ -10,10 +10,4 @@ export default tseslint.config(
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  {
-    rules: {
-      // Probably not recommended
-      "@typescript-eslint/no-explicit-any": 0,
-    },
-  },
 );

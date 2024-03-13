@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 import { AppDataSource } from "../data-source";
 import { Response } from "express";
 import { Character } from "../entity/Character";

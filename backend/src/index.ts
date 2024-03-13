@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 import express, { NextFunction, Request, Response } from "express";
 import { AppDataSource } from "./data-source";
 import { Routes } from "./routes";
