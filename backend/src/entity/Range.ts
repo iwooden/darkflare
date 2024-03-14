@@ -7,6 +7,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  Index,
 } from "typeorm";
 import { pgIntervalTransform } from "../util/pgUtils";
 import { Character } from "./Character";
@@ -14,6 +15,9 @@ import { Event } from "./Event";
 
 @Entity()
 @Unique(["character", "order"])
+// Created custom GIST index for timerange column in first migration
+// Tell typeorm to ignore it
+@Index("tsrange_idx", { synchronize: false })
 export class Range {
   @PrimaryGeneratedColumn()
   id!: number;

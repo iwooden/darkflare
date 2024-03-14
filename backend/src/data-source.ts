@@ -1,9 +1,12 @@
 import "reflect-metadata";
 import { DataSource } from "typeorm";
-import { Character } from "./entity/Character";
-import { Event } from "./entity/Event";
 import { Party } from "./entity/Party";
+import { Character } from "./entity/Character";
 import { Range } from "./entity/Range";
+import { Event } from "./entity/Event";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -16,6 +19,6 @@ export const AppDataSource = new DataSource({
   synchronize: true,
   logging: false,
   entities: [Party, Character, Event, Range],
-  migrations: [],
+  migrations: ["build/migrations/*.js"],
   subscribers: [],
 });

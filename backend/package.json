@@ -21,6 +21,8 @@
   },
   "scripts": {
     "start": "ts-node src/index.ts",
-    "typeorm": "typeorm-ts-node-commonjs"
+    "typeorm": "typeorm-ts-node-commonjs",
+    "migration:generate": "tsc && npx typeorm-ts-node-commonjs migration:generate -d ./build/data-source.js",
+    "migration:run": "tsc && npx typeorm-ts-node-commonjs migration:run -d ./build/data-source.js"
   }
 }
