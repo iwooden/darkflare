@@ -5,6 +5,7 @@ import { Character } from "./entity/Character";
 import { Range } from "./entity/Range";
 import { Event } from "./entity/Event";
 import dotenv from "dotenv";
+import { Universe } from "./entity/Universe";
 
 dotenv.config();
 
@@ -18,7 +19,7 @@ export const AppDataSource = new DataSource({
   useUTC: true,
   synchronize: true,
   logging: false,
-  entities: [Party, Character, Event, Range],
+  entities: [Party, Character, Event, Range, Universe],
   migrations: ["build/migrations/*.js"],
   subscribers: [],
 });

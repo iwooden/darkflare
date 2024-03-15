@@ -10,6 +10,7 @@ import { Character } from "./Character";
 import { displayDuration, pgDurationTransform } from "../util/pgUtils";
 import { Duration } from "luxon";
 import { Range } from "./Range";
+import { Universe } from "./Universe";
 
 export enum EventType {
   SpanTime = "spanTime",
@@ -42,6 +43,14 @@ export class Event {
     onDelete: "CASCADE",
   })
   range!: Range;
+
+  @Column()
+  universeId!: number;
+
+  @ManyToOne(() => Universe, (universe) => universe.events, {
+    onDelete: "CASCADE",
+  })
+  universe!: Universe;
 
   @Column({ type: "timestamp" })
   time!: Date;

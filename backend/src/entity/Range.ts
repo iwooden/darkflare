@@ -12,6 +12,7 @@ import {
 import { pgIntervalTransform } from "../util/pgUtils";
 import { Character } from "./Character";
 import { Event } from "./Event";
+import { Universe } from "./Universe";
 
 @Entity()
 @Unique(["character", "order"])
@@ -29,6 +30,14 @@ export class Range {
     onDelete: "CASCADE",
   })
   character!: Character;
+
+  @Column()
+  universeId!: number;
+
+  @ManyToOne(() => Universe, (universe) => universe.ranges, {
+    onDelete: "CASCADE",
+  })
+  universe!: Universe;
 
   @OneToMany(() => Event, (event) => event.range, {
     cascade: true,

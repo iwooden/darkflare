@@ -12,6 +12,7 @@ const EventQuery = z
   .object({
     id: z.number().optional(),
     characterId: z.number().optional(),
+    universeId: z.number().optional(),
     order: z.number().optional(),
     timeStart: z.string().datetime().optional(),
     timeEnd: z.string().datetime().optional(),
@@ -25,6 +26,7 @@ export type EventQuery = z.infer<typeof EventQuery>;
 const EventCreate = z
   .object({
     characterId: z.number(),
+    universeId: z.number(),
     time: z.string().datetime(),
     toTime: z.string().datetime().optional(),
     timezone: z.string().refine((s) => {

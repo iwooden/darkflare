@@ -13,11 +13,13 @@ import {
   EventQuery,
 } from "../validator/EventValidators";
 import { ReqBody, ReqQuery } from "../util/reqTypes";
+import { Universe } from "../entity/Universe";
 
 export class EventController {
   private eventRepository = AppDataSource.getRepository(Event);
   private charRepository = AppDataSource.getRepository(Character);
   private rangeRepository = AppDataSource.getRepository(Range);
+  private universeRepository = AppDataSource.getRepository(Universe);
 
   async query(req: ReqQuery<EventQuery>) {
     const q = req.query;
@@ -55,13 +57,21 @@ export class EventController {
   async create(req: ReqBody<EventCreate>, res: Response) {
     const q = req.body;
 
-    const parsedTime = DateTime.fromISO(q.time, { zone: "UTC" });
     const char = await this.charRepository.findOneBy({ id: q.characterId });
-
     if (!char) {
       res.statusCode = 400;
       return `no char found for id ${q.characterId}`;
     }
+
+    const universe = await this.universeRepository.findOneBy({
+      id: q.universeId,
+    });
+    if (!universe) {
+      res.statusCode = 400;
+      return `no universe found for id ${q.universeId}`;
+    }
+
+    const parsedTime = DateTime.fromISO(q.time, { zone: "UTC" });
 
     // May all be modified depending on event type
     let eventOrder = char.nextSpanOrder;

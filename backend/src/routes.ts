@@ -19,6 +19,12 @@ import {
 } from "./validator/EventValidators";
 import { RangeController } from "./controller/RangeController";
 import { RangeQueryValidator } from "./validator/RangeValidators";
+import {
+  UniverseCreateValidator,
+  UniverseDeleteValidator,
+  UniverseQueryValidator,
+} from "./validator/UniverseValidators";
+import { UniverseController } from "./controller/UniverseController";
 
 export const Routes = [
   // event routes
@@ -95,6 +101,29 @@ export const Routes = [
     controller: PartyController,
     action: "remove",
     validator: PartyDeleteValidator,
+  },
+
+  // universe routes
+  {
+    method: "get",
+    route: "/universes",
+    controller: UniverseController,
+    action: "query",
+    validator: UniverseQueryValidator,
+  },
+  {
+    method: "post",
+    route: "/universes",
+    controller: UniverseController,
+    action: "create",
+    validator: UniverseCreateValidator,
+  },
+  {
+    method: "post",
+    route: "/universes/remove",
+    controller: UniverseController,
+    action: "remove",
+    validator: UniverseDeleteValidator,
   },
 
   // range routes
