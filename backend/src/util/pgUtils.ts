@@ -25,7 +25,17 @@ export const pgDurationTransform = {
   to: durationToPg,
 };
 
-const intervalToPg = (i: Interval) => {
+export enum InfiniteRangeType {
+  StartDefined = "startDefined",
+  EndDefined = "endDefined",
+}
+
+export const infiniteIntervalToPg = (d: DateTime, t: InfiniteRangeType) => {
+  const dStr = d.toUTC().toSQL();
+  return t === InfiniteRangeType.StartDefined ? `[${dStr},)` : `(,${dStr}]`;
+};
+
+export const intervalToPg = (i: Interval) => {
   const start = i.start!.toUTC().toSQL();
   const end = i.end!.toUTC().toSQL();
   return `[${start}, ${end}]`;
