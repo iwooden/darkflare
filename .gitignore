@@ -1,7 +1,10 @@
 *.DS_Store
 *.log
 *.env
-*.org
+
+sql-scratch.org
+rest-scratch.org
+notes.org
 
 **/node_modules
 **/build
