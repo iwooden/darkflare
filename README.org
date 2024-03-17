@@ -8,7 +8,6 @@ Darkflare is a web platform for the collection and display of data relating to t
 This document will use the following definitions from /Continuum/ for more clarity when discussing time-travel scenarios.
 - *Age* - the *subjective* past of the character, regardless of how much time-traveling they've done. Ex: you may have been in Paris in 1975 10 years ago in your Age, regardless of the fact you're currently in 1963. =age= may also be used in lowercase fashion to denote the more usual usage: the amount of time that has passed since the character's birth, again regardless of how much time-traveling they've done.
 - *Yet* - the *subjective* future of the character. If a character witnesses an older version of themselves perform an action, or someone tells them that they do something in their subjective future, then they have gotten information about their Yet.
-
   Depending on the time travel mechanics being used, these actions may be required actions that the character must fulfill to avoid paradox, or could just be information about the way things will unfold unless specific actions are taken, etc.
 - *Down* - the *objective* past from the current perspective of the character. Ex: 1963 is 12 years Down from 1975.
 - *Up* - the *objective* future from the current perspective of the character. Ex: 1975 is 12 years Up from 1963.
@@ -23,13 +22,10 @@ Ranges allow Darkflare to easily answer questions like:
 - Give me the character's complete time travel history, ordered by their Age.
 ** Events
 *Events* are specific occurrences of interest that happen within a range. These could just be notes ("character robbed a bank in 1981"), or could denote the birth/death of the character, etc.
-
 Events are used to create and modify ranges. For example, engaging in time travel or changing location implies creating a new range for their updated spacetime "coordinates". In addition, adding an event will extend the character's current range to the event date, and will cause the character to accrue age.
-
 Ex: A character has existed in San Francisco since 1989. They then time travel from 1994 to 1953, teleporting to Seattle in the process. This causes the San Francisco range to be extended to 1994, accruing 5 years of age to the character, and creating a new range in Seattle in 1953. If a new event is created saying that the character robs a bank in Seattle in 1955, the Seattle range is extended to 1955 and 2 years of age are accrued to the character.
 * TODO Paradox and Divergence
 Paradox can be resolved/unresolved, connected to Events, can stack (killing of both maternal/paternal grandfathers).
-
 Divergence implies new char spawned from point of divergence (kidnapping younger self).
 * TODO Multiple Universes
 Universes are really just a generalization of "location" for Range purposes, but get special status in the data schema to make modeling this common scenario easier.
